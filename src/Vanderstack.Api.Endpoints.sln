@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.26403.3
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vanderstack.Api.Endpoints", "Vanderstack.Api.Endpoints\Vanderstack.Api.Endpoints.csproj", "{2109BAFF-D6BD-4D6E-A0D8-3B2D3192A374}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Vanderstack.Api.Endpoints.Tests", "..\test\Vanderstack.Api.Endpoints.Tests\Vanderstack.Api.Endpoints.Tests.csproj", "{8BFDA34F-8109-4D66-AAB1-6A7FF89EF39C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Vanderstack.Api.Core", "Vanderstack.Api.Core\Vanderstack.Api.Core.csproj", "{B9A7CEEC-7E60-47FF-889A-759D1DBDC240}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2109BAFF-D6BD-4D6E-A0D8-3B2D3192A374}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2109BAFF-D6BD-4D6E-A0D8-3B2D3192A374}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2109BAFF-D6BD-4D6E-A0D8-3B2D3192A374}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2109BAFF-D6BD-4D6E-A0D8-3B2D3192A374}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8BFDA34F-8109-4D66-AAB1-6A7FF89EF39C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8BFDA34F-8109-4D66-AAB1-6A7FF89EF39C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8BFDA34F-8109-4D66-AAB1-6A7FF89EF39C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8BFDA34F-8109-4D66-AAB1-6A7FF89EF39C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B9A7CEEC-7E60-47FF-889A-759D1DBDC240}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B9A7CEEC-7E60-47FF-889A-759D1DBDC240}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B9A7CEEC-7E60-47FF-889A-759D1DBDC240}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B9A7CEEC-7E60-47FF-889A-759D1DBDC240}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

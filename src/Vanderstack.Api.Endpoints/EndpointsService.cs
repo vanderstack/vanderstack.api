@@ -3,12 +3,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Vanderstack.Api.Core;
 
-namespace Vanderstack.Api.Core
+namespace Vanderstack.Api.Endpoints
 {
-    public class Program
+    public class EndpointsService : IMicroService
     {
-        public static void Main(string[] args)
+        public void Start()
         {
             var host = new WebHostBuilder()
                 .UseKestrel()

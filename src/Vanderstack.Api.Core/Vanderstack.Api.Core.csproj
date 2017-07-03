@@ -1,25 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp1.1</TargetFramework>
-    <ApplicationInsightsResourceId>/subscriptions/62fea867-66fe-4e6c-b107-c6ed9c08b7f1/resourcegroups/Vanderstack.Api/providers/microsoft.insights/components/VanderstackApiEndpoints20170702105420</ApplicationInsightsResourceId>
-    <ApplicationInsightsAnnotationResourceId>/subscriptions/62fea867-66fe-4e6c-b107-c6ed9c08b7f1/resourcegroups/Vanderstack.Api/providers/microsoft.insights/components/VanderstackApiEndpoints20170702105420</ApplicationInsightsAnnotationResourceId>
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.0.0" />
-    <PackageReference Include="Microsoft.AspNetCore" Version="1.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="1.1.1" />
-  </ItemGroup>
-  <ItemGroup>
-    <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="1.0.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <WCFMetadata Include="Connected Services" />
+    <PackageReference Include="Microsoft.Extensions.DependencyModel" Version="1.1.2" />
+    <PackageReference Include="SimpleInjector" Version="4.0.8" />
   </ItemGroup>
 
 </Project>
