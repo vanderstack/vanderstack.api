@@ -41,10 +41,10 @@ namespace Vanderstack.Api.Core.Infrastructure.Internal
                 .Instance
                 .Types
                 .Where(candidateType =>
-                    typeof(IStartupServicePackage).IsAssignableFrom(candidateType)
+                    typeof(IStartupServiceObjectGraphConfiguration).IsAssignableFrom(candidateType)
                     && candidateType.GetTypeInfo().IsClass
                 ).Select(startupPackageType =>
-                    (IStartupServicePackage)Activator.CreateInstance(startupPackageType)
+                    (IStartupServiceObjectGraphConfiguration)Activator.CreateInstance(startupPackageType)
                 );
 
             foreach (var startupServicePackage in startupServicePackages)

@@ -5,7 +5,7 @@
         IContainer InitializeContainer(Container targetContainer);
     }
 
-    internal class IContainerInitializerStartupServicePackage : IStartupServicePackage
+    internal class IContainerInitializerStartupServicePackage : IStartupServiceObjectGraphConfiguration
     {
         public void RegisterStartupService(Container container)
         {

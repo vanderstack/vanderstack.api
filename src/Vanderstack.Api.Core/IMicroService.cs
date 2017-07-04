@@ -27,7 +27,7 @@ namespace Vanderstack.Api.Core
         void Start();
     }
 
-    public class IMicroServiceServicePackage : IServicePackage
+    public class IMicroServiceServicePackage : IServiceGraphConfiguration
     {
         public void RegisterService(Container container)
         {

@@ -7,29 +7,29 @@ namespace Vanderstack.Api.Core.Infrastructure.DependencyInjection
         public ContainerInitializationConfiguration(
             SimpleInjector.Lifestyle defaultLifestyle
             , SimpleInjector.ScopedLifestyle defaultScopedLifestyle
-            , IServicePackage servicePackage
+            , IServiceGraphConfiguration servicePackage
             , bool requireVerification
         )
         {
             DefaultLifestyle = defaultLifestyle;
             DefaultScopedLifestyle = defaultScopedLifestyle;
             RequireVerification = requireVerification;
-            ServicePackage = servicePackage;
+            ServiceConfiguration = servicePackage;
         }
 
         public SimpleInjector.Lifestyle DefaultLifestyle { get; }
         public SimpleInjector.ScopedLifestyle DefaultScopedLifestyle { get; }
         public bool RequireVerification { get; }
-        public IServicePackage ServicePackage { get; }
+        public IServiceGraphConfiguration ServiceConfiguration { get; }
     }
 
-    internal class ContainerInitializationConfigurationPackage : IStartupServicePackage
+    internal class ContainerInitializationConfigurationPackage : IStartupServiceObjectGraphConfiguration
     {
         public void RegisterStartupService(Container container)
         {
             Func<ContainerInitializationConfiguration> instanceCreator = () =>
             {
-                var servicePackage = container.GetInstance<IServicePackage>();
+                var servicePackage = container.GetInstance<IServiceGraphConfiguration>();
 
                 return new ContainerInitializationConfiguration(
                     defaultLifestyle: SimpleInjector.Lifestyle.Scoped

@@ -2,14 +2,14 @@
 
 namespace Vanderstack.Api.Core.Infrastructure.DependencyInjection
 {
-    public class CompositeServicePackage : IServicePackage, IComposite
+    public class CompositeServicePackage : IServiceGraphConfiguration, IComposite
     {
-        public CompositeServicePackage(IEnumerable<IServicePackage> servicePackages)
+        public CompositeServicePackage(IEnumerable<IServiceGraphConfiguration> servicePackages)
         {
             _servicePackages = servicePackages;
         }
 
-        private readonly IEnumerable<IServicePackage> _servicePackages;
+        private readonly IEnumerable<IServiceGraphConfiguration> _servicePackages;
 
         public void RegisterService(Container container)
         {

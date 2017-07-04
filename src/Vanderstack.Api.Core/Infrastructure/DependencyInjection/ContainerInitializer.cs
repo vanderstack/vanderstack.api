@@ -16,7 +16,7 @@ namespace Vanderstack.Api.Core.Infrastructure.DependencyInjection
             targetContainer.Options.DefaultLifestyle = _containerConfiguration.DefaultLifestyle;
             targetContainer.Options.DefaultScopedLifestyle = _containerConfiguration.DefaultScopedLifestyle;
 
-            _containerConfiguration.ServicePackage.RegisterService(targetContainer);
+            _containerConfiguration.ObjectGraphConfiguration.RegisterService(targetContainer);
 
             if (_containerConfiguration.RequireVerification)
             {
@@ -27,7 +27,7 @@ namespace Vanderstack.Api.Core.Infrastructure.DependencyInjection
         }
     }
 
-    internal class ContainerInitializerStartupServicePackage : IStartupServicePackage
+    internal class ContainerInitializerStartupServicePackage : IStartupServiceObjectGraphConfiguration
     {
         public void RegisterStartupService(Container container)
         {

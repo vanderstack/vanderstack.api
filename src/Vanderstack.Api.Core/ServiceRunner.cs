@@ -19,7 +19,7 @@ namespace Vanderstack.Api.Core
         }
     }
 
-    public class ServiceRunnerServicePackage : IServicePackage
+    public class ServiceRunnerServicePackage : IServiceGraphConfiguration
     {
         public void RegisterService(Container container)
         {

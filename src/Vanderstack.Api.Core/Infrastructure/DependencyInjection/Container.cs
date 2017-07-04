@@ -4,7 +4,7 @@
     {
     }
 
-    internal class ContainerStartupServicePackage : IStartupServicePackage
+    internal class ContainerStartupServicePackage : IStartupServiceObjectGraphConfiguration
     {
         public void RegisterStartupService(Container container)
         {

@@ -2,16 +2,16 @@
 
 namespace Vanderstack.Api.Core.Infrastructure.DependencyInjection
 {
-    public interface IServicePackage
+    public interface IServiceGraphConfiguration : IObjectGraphConfiguration
     {
         void RegisterService(Container container);
     }
 
-    internal class IServicePackageStartupServicePackage : IStartupServicePackage
+    internal class IServicePackageStartupServicePackage : IStartupServiceObjectGraphConfiguration
     {
         public void RegisterStartupService(Container container)
         {
-            container.RegisterComposite<IServicePackage>(SimpleInjector.Lifestyle.Transient);
+            container.RegisterComposite<IServiceGraphConfiguration>(SimpleInjector.Lifestyle.Transient);
         }
     }
 }

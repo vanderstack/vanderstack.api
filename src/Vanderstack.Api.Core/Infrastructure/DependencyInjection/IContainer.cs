@@ -5,7 +5,7 @@
         TService GetInstance<TService>() where TService : class;
     }
 
-    internal class IContainerStartupServicePackage : IStartupServicePackage
+    internal class IContainerStartupServicePackage : IStartupServiceObjectGraphConfiguration
     {
         public void RegisterStartupService(Container container)
         {

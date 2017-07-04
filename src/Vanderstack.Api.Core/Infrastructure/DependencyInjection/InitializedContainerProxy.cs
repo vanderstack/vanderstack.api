@@ -16,7 +16,7 @@ namespace Vanderstack.Api.Core.Infrastructure.DependencyInjection
             => _initializedContainer.GetInstance<TService>();
     }
 
-    internal class InitializedContainerStartupServicePackage : IStartupServicePackage
+    internal class InitializedContainerStartupServicePackage : IStartupServiceObjectGraphConfiguration
     {
         public void RegisterStartupService(Container container)
         {
