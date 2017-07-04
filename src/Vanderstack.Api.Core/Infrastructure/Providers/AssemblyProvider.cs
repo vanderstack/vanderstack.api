@@ -7,9 +7,10 @@ using Vanderstack.Api.Core.Infrastructure.Extensions;
 
 namespace Vanderstack.Api.Core.Infrastructure.Providers
 {
+
     public class AssemblyProvider
     {
-        public AssemblyProvider(IAssemblyConfiguration assemblyConfiguration)
+        public AssemblyProvider()
         {
             _assemblyConfiguration = assemblyConfiguration;
         }
@@ -67,14 +68,51 @@ namespace Vanderstack.Api.Core.Infrastructure.Providers
             );
     }
 
-    public class VanderstackAssemblyConfiguration : IAssemblyConfiguration
+    public class RuntimeLibraryAssemblyNameProvider
     {
-        // todo: Technical Debt
-        // this will need to be extended with the addition of each new vanderstack extenstion project
-        public IEnumerable<string> AssemblyNamesToImport =>
-            typeof(VanderstackAssemblyConfiguration).GetTypeInfo()
+        public IEnumerable<string> AssemblyNames =>
+            DependencyContext.Default.RuntimeLibraries
+            .SelectMany(runtimeLibrary =>
+                runtimeLibrary.Dependencies.SelectMany(dependency =>
+                    dependency.Name
+                ).Concat(
+                    runtimeLibrary.Assemblies.Select(assembly =>
+                        assembly.Name
+                    )
+                )
+            );
+                
+    }
+
+    public class VanderstackAssemblyNameProvider
+    {
+        public IEnumerable<string> AssemblyNames =>
+            typeof(VanderstackAssemblyNameProvider).GetTypeInfo()
             .Assembly.GetName().Name.AsEnumerable();
     }
+
+    public class UserDefinedAssemblyNameProvider
+    {
+        public UserDefinedAssemblyNameProvider(VanderstackAssemblyNameProvider vanderstackAssemblyNameProvider)
+        {
+            _vanderstackAssemblyNames = vanderstackAssemblyNameProvider.AssemblyNames;
+        }
+
+        private readonly IEnumerable<string> _vanderstackAssemblyNames;
+
+        public IEnumerable<string> AssemblyNames =>
+            DependencyContext.Default.RuntimeLibraries
+            .Where(runtimeLibrary =>
+                runtimeLibrary.Dependencies.Select(dependency =>
+                    dependency.Name
+                ).Intersect(_vanderstackAssemblyNames).Any()
+            ).SelectMany(runtimeLibrary =>
+                runtimeLibrary.Dependencies.Select(dependencyLibrary =>
+                    dependencyLibrary.Name
+                ).Concat(runtimeLibrary.Name.AsEnumerable())
+            );
+    }
+
 
     public class IAssemblyConfigurationStartupServicePackage : IStartupServicePackage
     {
