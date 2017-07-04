@@ -13,16 +13,16 @@ namespace Vanderstack.Api.Core.Infrastructure.Helpers
             Instance = new ReflectionHelper();
         }
 
+        private IEnumerable<string> apiAssemblyNames = new Type[]
+        {
+            typeof(ReflectionHelper)
+        }
+        .Select(type =>
+            type.GetTypeInfo().Assembly.GetName().Name.ToLower()
+        );
+
         private ReflectionHelper()
         {
-            var apiAssemblyNames = new Type[]
-            {
-                typeof(ReflectionHelper)
-            }
-            .Select(type =>
-                type.GetTypeInfo().Assembly.GetName().Name.ToLower()
-            );
-
             Assemblies =
                 DependencyContext.Default.RuntimeLibraries
                 .Where(runtimeLibrary =>
