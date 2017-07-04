@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using Vanderstack.Api.Core.Infrastructure.DependencyInjection;
-using Vanderstack.Api.Core.Infrastructure.Internal;
+using Vanderstack.Api.Core.Infrastructure.Helpers;
 
 namespace Vanderstack.Api.Core
 {
@@ -32,14 +32,12 @@ namespace Vanderstack.Api.Core
         public void RegisterService(Container container)
         {
             var registrations =
-                AssemblyProvider
-                .Assemblies
-                .SelectMany(assembly =>
-                    assembly.ExportedTypes
-                )
+                ReflectionHelper
+                .Instance
+                .Types
                 .Where(candidateType =>
-                    candidateType.GetTypeInfo().IsClass
-                    && typeof(IMicroService).IsAssignableFrom(candidateType)
+                    typeof(IMicroService).IsAssignableFrom(candidateType)
+                    && candidateType.GetTypeInfo().IsClass
                 ).Select(microserviceType =>
                     SimpleInjector.Lifestyle.Singleton.CreateRegistration(microserviceType, container)
                 );

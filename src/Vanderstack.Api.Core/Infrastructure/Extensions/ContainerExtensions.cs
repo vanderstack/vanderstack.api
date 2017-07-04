@@ -1,7 +1,7 @@
 ﻿using System.Linq;
 using System.Reflection;
 using Vanderstack.Api.Core.Infrastructure.DependencyInjection;
-using Vanderstack.Api.Core.Infrastructure.Internal;
+using Vanderstack.Api.Core.Infrastructure.Helpers;
 
 namespace Vanderstack.Api.Core.Infrastructure.Extensions
 {
@@ -9,13 +9,12 @@ namespace Vanderstack.Api.Core.Infrastructure.Extensions
     {
         public static void RegisterComposite<TService>(this Container container, SimpleInjector.Lifestyle lifestyle) where TService : class
         {
-            var typesToRegister = AssemblyProvider.Assemblies.SelectMany(assembly =>
-                assembly.ExportedTypes
-            )
-            .Where(candidateType =>
-                candidateType.GetTypeInfo().IsClass
-                && typeof(TService).IsAssignableFrom(candidateType)
-            );
+            var typesToRegister = ReflectionHelper.Instance
+                .Types
+                .Where(candidateType =>
+                    candidateType.GetTypeInfo().IsClass
+                    && typeof(TService).IsAssignableFrom(candidateType)
+                );
 
             var compositeType = typesToRegister.Where(candidateType =>
                 typeof(IComposite).IsAssignableFrom(candidateType)

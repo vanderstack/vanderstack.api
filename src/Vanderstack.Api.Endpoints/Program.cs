@@ -4,7 +4,7 @@
     {
         public static void Main(string[] args)
         {
-            Vanderstack.Api.Core.Startup.Start();
+            new Vanderstack.Api.Core.Launcher().launch();
         }
     }
 }

@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Reflection;
 using Vanderstack.Api.Core.Infrastructure.DependencyInjection;
+using Vanderstack.Api.Core.Infrastructure.Helpers;
 
 namespace Vanderstack.Api.Core.Infrastructure.Internal
 {
@@ -36,16 +37,13 @@ namespace Vanderstack.Api.Core.Infrastructure.Internal
         private void ApplyContainerRegistrations()
         {
             var startupServicePackages =
-                AssemblyProvider
-                .Assemblies
-                .SelectMany(assembly =>
-                    assembly.ExportedTypes
-                )
+                ReflectionHelper
+                .Instance
+                .Types
                 .Where(candidateType =>
-                    candidateType.GetTypeInfo().IsClass
-                    && typeof(IStartupServicePackage).IsAssignableFrom(candidateType)
-                )
-                .Select(startupPackageType =>
+                    typeof(IStartupServicePackage).IsAssignableFrom(candidateType)
+                    && candidateType.GetTypeInfo().IsClass
+                ).Select(startupPackageType =>
                     (IStartupServicePackage)Activator.CreateInstance(startupPackageType)
                 );
 
@@ -60,6 +58,4 @@ namespace Vanderstack.Api.Core.Infrastructure.Internal
             _configurationContainer.Verify();
         }
     }
-
-    
 }
