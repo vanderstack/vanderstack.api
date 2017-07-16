@@ -1,12 +1,13 @@
-﻿using System;
-using SimpleInjector;
-using System.Collections.Generic;
+﻿using SimpleInjector;
 using SimpleInjector.Lifestyles;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 
 namespace Vanderstack.Api.Core.Infrastructure.DependencyInjection
 {
-    public class TestProgram
+    public class Program
     {
         public void Main()
         {
@@ -14,85 +15,62 @@ namespace Vanderstack.Api.Core.Infrastructure.DependencyInjection
             container.Options.DefaultLifestyle = Lifestyle.Scoped;
             container.Options.DefaultScopedLifestyle = new AsyncScopedLifestyle();
 
-            bool doEventLoop = true;
-            container.RegisterSingleton<ApplicationShutdownManager>(
-                new ApplicationShutdownManager(
-                    shutdownAction: () => doEventLoop = false
-                )
-            );
+            var exceptionManager = new ApplicationExceptionManager();
+            container.RegisterSingleton(instance: exceptionManager);
 
-            ICollection<Exception> exceptions = new List<Exception>();
-            container.RegisterSingleton<ICollection<Exception>>(exceptions);
-
-            container.Register<TestProgramLauncher>(Lifestyle.Scoped);
+            container.Register<ApplicationLauncher>();
 
             container.Verify();
 
-            while (doEventLoop)
+            while (false == exceptionManager.ShutdownRequired)
             {
                 try
                 {
                     using (AsyncScopedLifestyle.BeginScope(container))
                     {
-                        container.GetInstance<TestProgramLauncher>().Launch();
+                        container.GetInstance<ApplicationLauncher>().Launch();
                     }
                 }
                 catch (Exception exception)
                 {
-                    exceptions.Add(exception);
+                    exceptionManager.RegisterException(exception);
                 }
             }
         }
     }
 
-    public class TestProgramLauncher
+    public class ApplicationLauncher
     {
-        public TestProgramLauncher(
-            RuntimeConfiguredContainer container
+        public ApplicationLauncher(
+            RuntimeContainerProvider runtimeContainerProvider
         )
         {
-            _container = container;
-            /*
-
-                        ICollection<Exception> exceptions
-            , ApplicationShutdownManager shutdownManager
-            , RuntimeConfiguredContainer container
-            // These should be part of the container initializer, which should be inside the runtime configured container
-            , ApplicationSettingsProvider applicationSettingsProvider
-            , AssemblyProvider assemblyProvider
-            // literally anything else you would normally new up
-
-            */
+            _runtimeContainerProvider = runtimeContainerProvider;
         }
 
-        private readonly RuntimeConfiguredContainer _container;
+        private readonly RuntimeContainerProvider _runtimeContainerProvider;
 
         public void Launch()
         {
-            _container.GetInstance<IMicroServiceLauncher>().Launch();
-
-            // if our inner container verification fails or we have errors which we cannot handle, we can log them and them and then invoke the shutdown manager
-            shutdownManager.Shutdown();
+            _runtimeContainerProvider
+                .Container
+                .GetInstance<IMicroServiceLauncher>()
+                .Launch();
         }
     }
 
-    public class RuntimeConfiguredContainer
+    public class RuntimeContainerProvider
     {
-        public RuntimeConfiguredContainer(
+        public RuntimeContainerProvider(
             RuntimeContainer container
             , RuntimeContainerInitializer containerInitializer
         )
         {
-            containerInitializer.InitializeContainer(container);
-            _container = container;
+            containerInitializer.Initialize(container);
+            Container = container;
         }
 
-        private readonly RuntimeContainer _container;
-
-        public TService GetInstance<TService>() where TService : class
-        {
-            return _container.GetInstance<TService>();
-        }
+        public RuntimeContainer Container { get; }
     }
 
     public class RuntimeContainer : Container
@@ -100,77 +78,138 @@ namespace Vanderstack.Api.Core.Infrastructure.DependencyInjection
 
     }
 
-    public interface IConfigureBlocks
+    public interface IConfigureObjectGraph
     {
-        void Configure(RuntimeContainer container, ApplicationSettings applicationSettings, IEnumerable<Assembly> assemblies);
+        void Configure(RuntimeContainer container, PlatformContext platformContext);
+    }
+
+    public interface IConfigureObjectGraph<TService>
+        : IConfigureObjectGraph
+    {
+    }
+
+    public class AssemblyProvider
+    {
+        public IEnumerable<Assembly> Assemblies =>
+            throw new NotImplementedException();
+    }
+
+    public interface IApplicationSetting
+    {
+
+    }
+
+    public class ApplicationSettings
+    {
+        public ApplicationSettings(AssemblyProvider assemblyProvider)
+        {
+            var applicationSettingsContainer = new Container();
+            applicationSettingsContainer
+                .RegisterCollection<IApplicationSetting>(
+                    assemblyProvider.Assemblies
+                );
+
+            _applicationSettings = applicationSettingsContainer.GetInstance<IEnumerable<IApplicationSetting>>();
+        }
+
+        private readonly IEnumerable<IApplicationSetting> _applicationSettings;
+
+        public TSetting For<TSetting>() where TSetting : IApplicationSetting
+        {
+            return _applicationSettings.OfType<TSetting>().Single();
+        }
+    }
+
+    public class EnvironmentSettings : IApplicationSetting
+    {
+        public string EnvironmentName { get; }
     }
 
     public class PlatformContext
     {
-        public IEnumerable<Assembly> Assemblies { get; }
-        public IApplicationSettings ApplicationSettings { get; }
-        public ICollection<Exception> Exceptions { get; }
-    }
-
-    public class BlockConfigurationManager
-    {
-        public BlockConfigurationManager(PlatformContext context)
+        public PlatformContext(
+            AssemblyProvider assemblyProvider
+            , ApplicationSettings applicationSettings
+            , ApplicationExceptionManager applicationExceptionManager
+        )
         {
-            _context = context;
-
-            var blockConfigurationContainer = new Container();
-            blockConfigurationContainer.RegisterCollection<IConfigureBlocks>(context.Assemblies);
-            _blockConfigurations = blockConfigurationContainer.GetInstance<IEnumerable<IConfigureBlocks>>();
+            Assemblies = assemblyProvider.Assemblies;
+            ApplicationSettings = applicationSettings;
+            ApplicationExceptionManager = applicationExceptionManager;
         }
 
-        private readonly IEnumerable<IConfigureBlocks> _blockConfigurations;
-        private readonly PlatformContext _context;
+        public IEnumerable<Assembly> Assemblies { get; }
 
-        public void ConfigureBlocks(RuntimeContainer container)
+        public ApplicationSettings ApplicationSettings { get; }
+
+        public ApplicationExceptionManager ApplicationExceptionManager { get; }
+    }
+
+    public class ObjectGraphConfigurationManager
+    {
+        public ObjectGraphConfigurationManager(PlatformContext platformContext)
         {
-            foreach (var configuration in _blockConfigurations)
+            _platformContext = platformContext;
+
+            var objectGraphConfigurationContainer = new Container();
+            objectGraphConfigurationContainer
+                .RegisterCollection(
+                    typeof(IConfigureObjectGraph)
+                    , _platformContext.Assemblies
+                );
+
+            _objectGraphConfigurations =
+                objectGraphConfigurationContainer
+                .GetInstance<IEnumerable<IConfigureObjectGraph>>();
+        }
+
+        private readonly PlatformContext _platformContext;
+        private readonly IEnumerable<IConfigureObjectGraph> _objectGraphConfigurations;
+
+        public void ConfigureObjectGraph(RuntimeContainer container)
+        {
+            foreach (var iConfigureObjectGraph in _objectGraphConfigurations)
             {
-                configuration.Configure(container, _context.ApplicationSettings, _context.Assemblies);
+                iConfigureObjectGraph.Configure(container, _platformContext);
             }
         }
     }
 
+    public class PlatformContextGraphConfiguration : IConfigureObjectGraph<PlatformContext>
+    {
+        public void Configure(RuntimeContainer container, PlatformContext platformContext)
+        {
+            container.RegisterSingleton<PlatformContext>(platformContext);
+        }
+    }
+
+    public class RuntimeContainerGraphConfiguration : IConfigureObjectGraph<RuntimeContainer>
+    {
+        public void Configure(RuntimeContainer container, PlatformContext platformContext)
+        {
+            container.RegisterSingleton<RuntimeContainer>(container);
+        }
+    }
+
+
+
     public class RuntimeContainerInitializer
     {
         public RuntimeContainerInitializer(
-            BlockConfigurationManager blockConfigurationManager
+            ObjectGraphConfigurationManager blockConfigurationManager
         )
         {
-            _blockConfigurationManager = blockConfigurationManager;
+            _objectGraphConfigurationManager = blockConfigurationManager;
         }
 
-        private readonly BlockConfigurationManager _blockConfigurationManager;
+        private readonly ObjectGraphConfigurationManager _objectGraphConfigurationManager;
 
-        /*
-
-ICollection<Exception> exceptions
-, ApplicationShutdownManager shutdownManager
-, RuntimeConfiguredContainer container
-// These should be part of the container initializer, which should be inside the runtime configured container
-, ApplicationSettingsProvider applicationSettingsProvider
-, AssemblyProvider assemblyProvider
-// literally anything else you would normally new up
-
-*/
-        public void InitializeContainer(RuntimeContainer container)
+        public void Initialize(RuntimeContainer container)
         {
             container.Options.DefaultLifestyle = Lifestyle.Scoped;
             container.Options.DefaultScopedLifestyle = new AsyncScopedLifestyle();
-            // keep going with initializing the Runtime Container with services
-            // container.register IHttpClient etc
-            // container.register IMicroServiceLauncher
-            // these should be done with IRegisterBlocks which is like IPackage but for vanderstack components.
-            // container.RegisterSingleton<IEnumerable<Assembly>>(_assemblyProvider.Assemblies);
-            // container register singleton appsettings
-            // we have assembly provider. we should use it to register a container with all assemblies to get IEnumerable IRegisterBlocks
 
-            _blockConfigurationManager.ConfigureBlocks(container);
-            
+            _objectGraphConfigurationManager.ConfigureObjectGraph(container);
 
             container.Verify();
         }
@@ -181,18 +220,22 @@ ICollection<Exception> exceptions
         void Launch();
     }
 
-    public class ApplicationShutdownManager
+    public class ApplicationExceptionManager
     {
-        public ApplicationShutdownManager(Action shutdownAction)
+        public ApplicationExceptionManager()
         {
-            _shutdownAction = shutdownAction;
+            _exceptions = new List<Exception>();
         }
 
-        private readonly Action _shutdownAction;
+        private readonly ICollection<Exception> _exceptions;
 
-        public void Shutdown()
+        public bool ShutdownRequired { get; private set; } = false;
+
+        public void Shutdown() => ShutdownRequired = true;
+
+        public void RegisterException(Exception exception)
         {
-            _shutdownAction();
+            _exceptions.Add(exception);
         }
     }
 
@@ -248,14 +291,14 @@ ICollection<Exception> exceptions
     /// <remarks>
     /// At this point we are not able to take a dependency on anything which is not provided by .NET
     /// We configure the object graph so that during the ApplicationStartup Lifecycle the startup
-    /// process is able to take dependencies on 
+    /// process is able to take dependencies on
     ///   Application configuration
     ///   Assemblies
     ///     Api Defined
     ///     User Defined (Depends on Api Defined Assembly)
     ///       Defined in DependencyContext.Runtime.Default
     ///       Deployed to same folder
-    ///   IStartupService Object Graph Configuration(s) 
+    ///   IStartupService Object Graph Configuration(s)
     /// </remarks>
     public interface IApplicationConfiguration : IApplicationLifecycle
     {
@@ -274,7 +317,7 @@ ICollection<Exception> exceptions
     }
 
     /// <summary>
-    /// 
+    ///
     /// </summary>
     public interface IApplicationStarted : IApplicationLifecycle
     {
@@ -303,7 +346,7 @@ ICollection<Exception> exceptions
     }
 
     // A Service which encapsulates startup level state or behavior.
-    // This information is 
+    // This information is
     public interface IStartupService : IService
     {
 
